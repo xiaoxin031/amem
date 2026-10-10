@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"time"
@@ -269,7 +270,7 @@ func uninstall() (string, error) {
 			allow, _ := perms["allow"].([]any)
 			perms["allow"] = slices.DeleteFunc(allow, func(r any) bool {
 				s, _ := r.(string)
-				return s == "mcp__amem" || strings.HasPrefix(s, "Bash(amem:") || strings.Contains(s, "/amem:")
+				return s == "mcp__amem" || amemBashRule.MatchString(s)
 			})
 		}
 		if err := note(writeJSON(path, root)); err != nil {
@@ -321,6 +322,9 @@ func uninstall() (string, error) {
 	return strings.Join(slices.DeleteFunc(out, func(s string) bool { return s == "" }), "\n") +
 		"\n\namem is unhooked. Your memory is still in " + home() + " (delete it yourself if you want).", nil
 }
+
+// amemBashRule matches the Bash permission rules install adds, for any path or .exe.
+var amemBashRule = regexp.MustCompile(`^Bash\("?(.*[/\\])?amem(\.exe)?"?:\*\)$`)
 
 func removeHooks(root map[string]any) {
 	hooks, _ := root["hooks"].(map[string]any)

@@ -272,6 +272,22 @@ func TestUninstall(t *testing.T) {
 	}
 }
 
+func TestAmemBashRule(t *testing.T) {
+	for rule, want := range map[string]bool{
+		"Bash(amem:*)":                    true,
+		"Bash(/usr/local/bin/amem:*)":     true,
+		"Bash(C:/Users/x/bin/amem.exe:*)": true,
+		`Bash("/Users/a b/bin/amem":*)`:   true,
+		"Bash(ls:*)":                      false,
+		"Bash(notamem:*)":                 false,
+		"Bash(/usr/bin/amem-other:*)":     false,
+	} {
+		if amemBashRule.MatchString(rule) != want {
+			t.Errorf("%s: want %v", rule, want)
+		}
+	}
+}
+
 func TestStopHook(t *testing.T) {
 	setup(t)
 	os.WriteFile(filepath.Join(home(), "config.json"), []byte(`{"review_every":3}`), 0o600)
